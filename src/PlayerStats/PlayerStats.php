@@ -39,14 +39,16 @@ Developer from Russia.
 - egr sas
 */
 
-class PlayerStats extends PluginBase implements Listener{
+class PlayerStats extends PluginBase implements Listener
+{
 
     /** @var Config */
     protected $config;
     /** @var \mysqli */
     protected $db;
 
-    public function onEnable(){
+    public function onEnable(): void
+    {
         @mkdir($this->getDataFolder());
         $this->saveDefaultConfig();
         $this->reloadConfig();
@@ -54,7 +56,7 @@ class PlayerStats extends PluginBase implements Listener{
         $this->config = new Config($this->getDataFolder() . "config.yml");
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
         $config = $this->config->get("mysql_settings");
-        if(!isset($config["host"]) or !isset($config["user"]) or !isset($config["password"]) or !isset($config["database"])){
+        if (!isset($config["host"]) || !isset($config["user"]) || !isset($config["password"]) || !isset($config["database"])) {
             $this->getLogger()->critical("MISSED MYSQL SETTINGS!");
             $this->getLogger()->critical("PLEASE, CHANGE IT IN config.yml");
             $this->getLogger()->critical("PLUGIN: PlayerStats");
@@ -75,53 +77,65 @@ class PlayerStats extends PluginBase implements Listener{
         $this->getLogger()->info("Successfully connected to MySQL server!");
     }
 
-    public function onDisable(){
+    public function onDisable(): void
+    {
         $this->getLogger()->info(TextFormat::RED."- PlayerStats disabled !");
     }
 
-    public function onCommand(CommandSender $sender,Command $command,$label,array $args){
-        if($sender instanceof Player){
-            if($command == "stats"){
-                if(isset($args[0])){
-                    if($args[0] instanceof Player or $args[0] instanceof OfflinePlayer){ // ???
-                        $stats = $this->getAll($this->getServer()->getPlayer($args[0]));
-                        if(!(is_null($stats))) {
-                            $kills = $stats["kills"]; $deaths = $stats["deaths"]; $chats = $stats["chats"]; 
-                            $breaks = $stats["breaks"]; $places = $stats["places"]; 
-                            $kicks = $stats["kicked"]; $joins = $stats["joins"]; $quits = $stats["quits"];
-                            $sender->sendMessage(TextFormat::GREEN . "---- " . $args[0]->getName() . " stats");
-                            $sender->sendMessage(TextFormat::GREEN . "Kills: " . $kills);
-                            $sender->sendMessage(TextFormat::GREEN . "Deaths: " . $deaths);
-                            $sender->sendMessage(TextFormat::GREEN . "Chats: " . $chats);
-                            $sender->sendMessage(TextFormat::GREEN . "Breaks: " . $breaks);
-                            $sender->sendMessage(TextFormat::GREEN . "Places: " . $places);
-                            $sender->sendMessage(TextFormat::GREEN . "Kicks: " . $kicks);
-                            $sender->sendMessage(TextFormat::GREEN . "Joins: " . $joins);
-                            $sender->sendMessage(TextFormat::GREEN . "Quits: " . $quits);
-                        }else{
-                            $sender->sendMessage(TextFormat::RED."- Player didn't founded !");
-                            //Please, help translate this plugin to ENG lang. Thanks.
+    public function onCommand(CommandSender $sender, Command $command, string $label, array $args): bool
+    {
+        if ($sender instanceof Player) {
+            switch ($command->getName()) {
+                case "stats":
+                    if (isset($args[0])) {
+                        if ($args[0] instanceof Player || $args[0] instanceof OfflinePlayer) { // ???
+                            $stats = $this->getAll($this->getServer()->getPlayer($args[0]));
+                            if (!(is_null($stats))) {
+                                $kills = $stats["kills"];
+                                $deaths = $stats["deaths"];
+                                $chats = $stats["chats"]; 
+                                $breaks = $stats["breaks"];
+                                $places = $stats["places"]; 
+                                $kicks = $stats["kicked"];
+                                $joins = $stats["joins"];
+                                $quits = $stats["quits"];
+                                $sender->sendMessage(TextFormat::GREEN . "---- " . $args[0]->getName() . " stats");
+                                $sender->sendMessage(TextFormat::GREEN . "Kills: " . $kills);
+                                $sender->sendMessage(TextFormat::GREEN . "Deaths: " . $deaths);
+                                $sender->sendMessage(TextFormat::GREEN . "Chats: " . $chats);
+                                $sender->sendMessage(TextFormat::GREEN . "Breaks: " . $breaks);
+                                $sender->sendMessage(TextFormat::GREEN . "Places: " . $places);
+                                $sender->sendMessage(TextFormat::GREEN . "Kicks: " . $kicks);
+                                $sender->sendMessage(TextFormat::GREEN . "Joins: " . $joins);
+                                $sender->sendMessage(TextFormat::GREEN . "Quits: " . $quits);
+                            } else {
+                                $sender->sendMessage(TextFormat::RED . "- Player didn't founded !");
+                            }
+                        } else {
+                            $sender->sendMessage(TextFormat::RED."- Player offline !");
                         }
-                    }else{
-                        $sender->sendMessage(TextFormat::RED."- Player offline !");
+                    } else {
+                        $stats = $this->getAll($sender);
+                        $kills = $stats["kills"];
+                        $deaths = $stats["deaths"];
+                        $chats = $stats["chats"];
+                        $breaks = $stats["breaks"];
+                        $places = $stats["places"];
+                        $kicks = $stats["kicked"];
+                        $joins = $stats["joins"];
+                        $quits = $stats["quits"];
+                        $sender->sendMessage(TextFormat::GREEN . "---- " . $sender->getName() . " stats");
+                        $sender->sendMessage(TextFormat::GREEN . "Kills: " . $kills);
+                        $sender->sendMessage(TextFormat::GREEN . "Deaths: " . $deaths);
+                        $sender->sendMessage(TextFormat::GREEN . "Chats: " . $chats);
+                        $sender->sendMessage(TextFormat::GREEN . "Breaks: " . $breaks);
+                        $sender->sendMessage(TextFormat::GREEN . "Places: " . $places);
+                        $sender->sendMessage(TextFormat::GREEN . "Kicks: " . $kicks);
+                        $sender->sendMessage(TextFormat::GREEN . "Joins: " . $joins);
+                        $sender->sendMessage(TextFormat::GREEN . "Quits: " . $quits);
                     }
-                }else{
-                    $stats = $this->getAll($sender);
-                    $kills = $stats["kills"]; $deaths = $stats["deaths"]; $chats = $stats["chats"]; $breaks = $stats["breaks"];
-                    $places = $stats["places"]; $kicks = $stats["kicked"]; $joins = $stats["joins"]; $quits = $stats["quits"];
-                    $sender->sendMessage(TextFormat::GREEN."---- ".$sender->getName()." stats");
-                    $sender->sendMessage(TextFormat::GREEN."Kills: ".$kills);
-                    $sender->sendMessage(TextFormat::GREEN."Deaths: ".$deaths);
-                    $sender->sendMessage(TextFormat::GREEN."Chats: ".$chats);
-                    $sender->sendMessage(TextFormat::GREEN."Breaks: ".$breaks);
-                    $sender->sendMessage(TextFormat::GREEN."Places: ".$places);
-                    $sender->sendMessage(TextFormat::GREEN."Kicks: ".$kicks);
-                    $sender->sendMessage(TextFormat::GREEN."Joins: ".$joins);
-                    $sender->sendMessage(TextFormat::GREEN."Quits: ".$quits);
-                }
+                    break;
             }
-        }else{
-            $sender->sendMessage(TextFormat::RED."- Console didn't support this command !");
         }
     }
 
@@ -131,13 +145,14 @@ class PlayerStats extends PluginBase implements Listener{
      * @param Player $player
      * @return null|int
      */
-    public function getDeaths(Player $player){
+    public function getDeaths(Player $player)
+    {
         $name = trim(strtolower($player->getName()));
-        $result = $this->db->query("SELECT * FROM `player_stats` WHERE `name` = '".$this->db->escape_string($name)."'");
-        if($result instanceof \mysqli_result){
+        $result = $this->db->query("SELECT * FROM `player_stats` WHERE `name` = '" . $this->db->escape_string($name) . "'");
+        if ($result instanceof \mysqli_result) {
             $data = $result->fetch_assoc();
             $result->free();
-            if(isset($data["name"]) and strtolower($data["name"]) === $name){
+            if (isset($data["name"]) && strtolower($data["name"]) === $name) {
                 unset($data["name"]);
                 return $data["deaths"];
             }
@@ -149,13 +164,14 @@ class PlayerStats extends PluginBase implements Listener{
      * @param Player $player
      * @return null|int
      */
-    public function getJoins(Player $player){
+    public function getJoins(Player $player)
+    {
         $name = trim(strtolower($player->getName()));
-        $result = $this->db->query("SELECT * FROM `player_stats` WHERE `name` = '".$this->db->escape_string($name)."'");
-        if($result instanceof \mysqli_result){
+        $result = $this->db->query("SELECT * FROM `player_stats` WHERE `name` = '" . $this->db->escape_string($name) . "'");
+        if ($result instanceof \mysqli_result) {
             $data = $result->fetch_assoc();
             $result->free();
-            if(isset($data["name"]) and strtolower($data["name"]) === $name){
+            if (isset($data["name"]) && strtolower($data["name"]) === $name) {
                 unset($data["name"]);
                 return $data["joins"];
             }
@@ -167,13 +183,14 @@ class PlayerStats extends PluginBase implements Listener{
      * @param Player $player
      * @return null|int
      */
-    public function getDrops(Player $player){
+    public function getDrops(Player $player)
+    {
         $name = trim(strtolower($player->getName()));
-        $result = $this->db->query("SELECT * FROM `player_stats` WHERE `name` = '".$this->db->escape_string($name)."'");
-        if($result instanceof \mysqli_result){
+        $result = $this->db->query("SELECT * FROM `player_stats` WHERE `name` = '" . $this->db->escape_string($name) . "'");
+        if ($result instanceof \mysqli_result) {
             $data = $result->fetch_assoc();
             $result->free();
-            if(isset($data["name"]) and strtolower($data["name"]) === $name){
+            if (isset($data["name"]) && strtolower($data["name"]) === $name) {
                 unset($data["name"]);
                 return $data["drops"];
             }
@@ -185,13 +202,14 @@ class PlayerStats extends PluginBase implements Listener{
      * @param Player $player
      * @return null|int
      */
-    public function getKills(Player $player){
+    public function getKills(Player $player)
+    {
         $name = trim(strtolower($player->getName()));
-        $result = $this->db->query("SELECT * FROM `player_stats` WHERE `name` = '".$this->db->escape_string($name)."'");
-        if($result instanceof \mysqli_result){
+        $result = $this->db->query("SELECT * FROM `player_stats` WHERE `name` = '" . $this->db->escape_string($name) . "'");
+        if ($result instanceof \mysqli_result) {
             $data = $result->fetch_assoc();
             $result->free();
-            if(isset($data["name"]) and strtolower($data["name"]) === $name){
+            if (isset($data["name"]) && strtolower($data["name"]) === $name) {
                 unset($data["name"]);
                 return $data["kills"];
             }
@@ -203,13 +221,14 @@ class PlayerStats extends PluginBase implements Listener{
      * @param Player $player
      * @return null|int
      */
-    public function getQuits(Player $player){
+    public function getQuits(Player $player)
+    {
         $name = trim(strtolower($player->getName()));
-        $result = $this->db->query("SELECT * FROM `player_stats` WHERE `name` = '".$this->db->escape_string($name)."'");
-        if($result instanceof \mysqli_result){
+        $result = $this->db->query("SELECT * FROM `player_stats` WHERE `name` = '" . $this->db->escape_string($name) . "'");
+        if ($result instanceof \mysqli_result) {
             $data = $result->fetch_assoc();
             $result->free();
-            if(isset($data["name"]) and strtolower($data["name"]) === $name){
+            if (isset($data["name"]) && strtolower($data["name"]) === $name) {
                 unset($data["name"]);
                 return $data["quits"];
             }
@@ -221,13 +240,14 @@ class PlayerStats extends PluginBase implements Listener{
      * @param Player $player
      * @return null|int
      */
-    public function getBreaks(Player $player){
+    public function getBreaks(Player $player)
+    {
         $name = trim(strtolower($player->getName()));
-        $result = $this->db->query("SELECT * FROM `player_stats` WHERE `name` = '".$this->db->escape_string($name)."'");
-        if($result instanceof \mysqli_result){
+        $result = $this->db->query("SELECT * FROM `player_stats` WHERE `name` = '" . $this->db->escape_string($name) . "'");
+        if ($result instanceof \mysqli_result) {
             $data = $result->fetch_assoc();
             $result->free();
-            if(isset($data["name"]) and strtolower($data["name"]) === $name){
+            if (isset($data["name"]) && strtolower($data["name"]) === $name) {
                 unset($data["name"]);
                 return $data["breaks"];
             }
@@ -239,13 +259,14 @@ class PlayerStats extends PluginBase implements Listener{
      * @param Player $player
      * @return null|int
      */
-    public function getPlaces(Player $player){
+    public function getPlaces(Player $player)
+    {
         $name = trim(strtolower($player->getName()));
-        $result = $this->db->query("SELECT * FROM `player_stats` WHERE `name` = '".$this->db->escape_string($name)."'");
-        if($result instanceof \mysqli_result){
+        $result = $this->db->query("SELECT * FROM `player_stats` WHERE `name` = '" . $this->db->escape_string($name) . "'");
+        if ($result instanceof \mysqli_result) {
             $data = $result->fetch_assoc();
             $result->free();
-            if(isset($data["name"]) and strtolower($data["name"]) === $name){
+            if (isset($data["name"]) && strtolower($data["name"]) === $name) {
                 unset($data["name"]);
                 return $data["places"];
             }
@@ -257,13 +278,14 @@ class PlayerStats extends PluginBase implements Listener{
      * @param Player $player
      * @return null|int
      */
-    public function getChats(Player $player){
+    public function getChats(Player $player)
+    {
         $name = trim(strtolower($player->getName()));
-        $result = $this->db->query("SELECT * FROM `player_stats` WHERE `name` = '".$this->db->escape_string($name)."'");
-        if($result instanceof \mysqli_result){
+        $result = $this->db->query("SELECT * FROM `player_stats` WHERE `name` = '" . $this->db->escape_string($name) . "'");
+        if ($result instanceof \mysqli_result) {
             $data = $result->fetch_assoc();
             $result->free();
-            if(isset($data["name"]) and strtolower($data["name"]) === $name){
+            if (isset($data["name"]) && strtolower($data["name"]) === $name) {
                 unset($data["name"]);
                 return $data["chats"];
             }
@@ -275,13 +297,14 @@ class PlayerStats extends PluginBase implements Listener{
      * @param Player $player
      * @return null|array
      */
-    public function getAll(Player $player){
+    public function getAll(Player $player)
+    {
         $name = trim(strtolower($player->getName()));
-        $result = $this->db->query("SELECT * FROM `player_stats` WHERE `name` = '".$this->db->escape_string($name)."'");
-        if($result instanceof \mysqli_result){
+        $result = $this->db->query("SELECT * FROM `player_stats` WHERE `name` = '" . $this->db->escape_string($name) . "'");
+        if ($result instanceof \mysqli_result) {
             $data = $result->fetch_assoc();
             $result->free();
-            if(isset($data["name"]) and strtolower($data["name"]) === $name){
+            if (isset($data["name"]) && strtolower($data["name"]) === $name) {
                 return $data;
             }
         }
@@ -293,29 +316,29 @@ class PlayerStats extends PluginBase implements Listener{
     /**
      * @param Player $player
      */
-    public function AddPlayer(Player $player){
-	if($this->getPlayer($player->getPlayer()) == null){
-        $this->db->query("INSERT INTO `player_stats`
-			(`name`, `breaks`, `places`, `deaths`, `kicked`, `drops`, `joins`, `quits`, `kills`,`chats`)
-			VALUES
-			('".$this->db->escape_string(strtolower($player->getPlayer()->getDisplayName()))."', '0','0','0','0','0','0','0','0','0')
-		    ");
-            }
+    public function AddPlayer(Player $player)
+    {
+        if ($this->getPlayer($player->getPlayer()) == null) {
+            $this->db->query(
+                "INSERT INTO `player_stats`(`name`, `breaks`, `places`, `deaths`, `kicked`, `drops`, `joins`, `quits`, `kills`, `chats`)VALUES('" .
+                $this->db->escape_string(strtolower($player->getPlayer()->getDisplayName())) . 
+                "', '0','0','0','0','0','0','0','0','0')"
+            );
+        }
     }
-
-
 
     /**
      * @param Player $player
      * @return array|null
      */
-    public function getPlayer(Player $player){
+    public function getPlayer(Player $player)
+    {
         $name = trim(strtolower($player->getName()));
-        $result = $this->db->query("SELECT * FROM player_stats WHERE name = '".$this->db->escape_string($name)."'");
-        if($result instanceof \mysqli_result){
+        $result = $this->db->query("SELECT * FROM player_stats WHERE name = '" . $this->db->escape_string($name) . "'");
+        if ($result instanceof \mysqli_result) {
             $data = $result->fetch_assoc();
             $result->free();
-            if(isset($data["name"]) and strtolower($data["name"]) === $name){
+            if (isset($data["name"]) && strtolower($data["name"]) === $name) {
                 unset($data["name"]);
                 return $data;
             }
@@ -328,12 +351,13 @@ class PlayerStats extends PluginBase implements Listener{
     /**
      * @param BlockBreakEvent $e
      */
-    public function BlockBreakEvent(BlockBreakEvent $e){
-        if(!$e->isCancelled()){
-            if(is_null($this->getPlayer($e->getPlayer()))){
+    public function BlockBreakEvent(BlockBreakEvent $e)
+    {
+        if (!$e->isCancelled()) {
+            if (is_null($this->getPlayer($e->getPlayer()))) {
                 $this->AddPlayer($e->getPlayer());
-            }else{
-                $this->db->query("UPDATE `player_stats` SET `breaks` = breaks +1 WHERE `name` = '".strtolower($this->db->escape_string($e->getPlayer()->getDisplayName()))."'");
+            } else {
+                $this->db->query("UPDATE `player_stats` SET `breaks` = breaks +1 WHERE `name` = '" . strtolower($this->db->escape_string($e->getPlayer()->getDisplayName())) . "'");
             }
         }
     }
@@ -341,12 +365,13 @@ class PlayerStats extends PluginBase implements Listener{
     /**
      * @param PlayerChatEvent $e
      */
-	public function onPlayerChat(PlayerChatEvent $e){
-        if(!$e->isCancelled()){
-            if(is_null($this->getPlayer($e->getPlayer()))){
+    public function onPlayerChat(PlayerChatEvent $e)
+    {
+        if (!$e->isCancelled()) {
+            if (is_null($this->getPlayer($e->getPlayer()))) {
                 $this->AddPlayer($e->getPlayer());
-            }else{
-                $this->db->query("UPDATE `player_stats` SET `chats` = chats +1 WHERE `name` = '".strtolower($this->db->escape_string($e->getPlayer()->getDisplayName()))."'");
+            } else {
+                $this->db->query("UPDATE `player_stats` SET `chats` = chats +1 WHERE `name` = '" . strtolower($this->db->escape_string($e->getPlayer()->getDisplayName())) . "'");
             }
         }
     }
@@ -354,15 +379,16 @@ class PlayerStats extends PluginBase implements Listener{
     /**
      * @param PlayerDeathEvent $event
      */
-    public function DeathEvent(PlayerDeathEvent $event){
+    public function DeathEvent(PlayerDeathEvent $event)
+    {
         $victim = $event->getEntity();
-        if($victim instanceof Player){
-            $this->db->query("UPDATE `player_stats` SET `deaths` = deaths +1 WHERE `name` = '".strtolower($this->db->escape_string($event->getEntity()->getPlayer()->getDisplayName()))."'");
+        if ($victim instanceof Player) {
+            $this->db->query("UPDATE `player_stats` SET `deaths` = deaths +1 WHERE `name` = '" . strtolower($this->db->escape_string($event->getEntity()->getPlayer()->getDisplayName())) . "'");
             $cause = $event->getEntity()->getLastDamageCause()->getCause();
-            if($cause == 1){
+            if ($cause == 1) {
                 $killer = $event->getEntity()->getLastDamageCause()->getEntity();
-                if($killer instanceof EntityDamageByEntityEvent){
-                    $this->db->query("UPDATE `player_stats` SET `kills` = kills +1 WHERE `name` = '".strtolower($this->db->escape_string($killer))."'");
+                if ($killer instanceof EntityDamageByEntityEvent) {
+                    $this->db->query("UPDATE `player_stats` SET `kills` = kills +1 WHERE `name` = '" . strtolower($this->db->escape_string($killer)) . "'");
                 }
 
             }
@@ -372,23 +398,25 @@ class PlayerStats extends PluginBase implements Listener{
     /**
      * @param PlayerDropItemEvent $e
      */
-    public function DropEvent(PlayerDropItemEvent $e){
-        if(is_null($this->getPlayer($e->getPlayer()))){
+    public function DropEvent(PlayerDropItemEvent $e)
+    {
+        if (is_null($this->getPlayer($e->getPlayer()))) {
              $this->AddPlayer($e->getPlayer());
-        }else{
-            $this->db->query("UPDATE `player_stats` SET `drops` = drops +1 WHERE `name` = '".strtolower($this->db->escape_string($e->getPlayer()->getDisplayName()))."'");
+        } else {
+            $this->db->query("UPDATE `player_stats` SET `drops` = drops +1 WHERE `name` = '" . strtolower($this->db->escape_string($e->getPlayer()->getDisplayName())) . "'");
         }
     }
 
     /**
      * @param BlockPlaceEvent $e
      */
-    public function BlockPlaceEvent(BlockPlaceEvent $e){
-        if(!$e->isCancelled()){
-            if(is_null($this->getPlayer($e->getPlayer()))){
+    public function BlockPlaceEvent(BlockPlaceEvent $e)
+    {
+        if (!$e->isCancelled()) {
+            if (is_null($this->getPlayer($e->getPlayer()))) {
                  $this->AddPlayer($e->getPlayer());
-            }else{
-                $this->db->query("UPDATE `player_stats` SET `places` = places +1 WHERE `name` = '".strtolower($this->db->escape_string($e->getPlayer()->getDisplayName()))."'");
+            } else {
+                $this->db->query("UPDATE `player_stats` SET `places` = places +1 WHERE `name` = '" . strtolower($this->db->escape_string($e->getPlayer()->getDisplayName())) . "'");
             }
         }
     }
@@ -396,19 +424,21 @@ class PlayerStats extends PluginBase implements Listener{
     /**
      * @param PlayerKickEvent $e
      */
-    public function KickEvent(PlayerKickEvent $e){
-        if(is_null($this->getPlayer($e->getPlayer()))){
+    public function KickEvent(PlayerKickEvent $e)
+    {
+        if (is_null($this->getPlayer($e->getPlayer()))) {
              $this->AddPlayer($e->getPlayer());
-        }else{
-            $this->db->query("UPDATE `player_stats` SET `kicked` = kicked +1 WHERE `name` = '".strtolower($this->db->escape_string($e->getPlayer()->getDisplayName()))."'");
+        } else {
+            $this->db->query("UPDATE `player_stats` SET `kicked` = kicked +1 WHERE `name` = '" . strtolower($this->db->escape_string($e->getPlayer()->getDisplayName())) . "'");
         }
     }
 
     /**
      * @param PlayerJoinEvent $e
      */
-    public function JoinEvent(PlayerJoinEvent $e){
-        if(is_null($this->getPlayer($e->getPlayer()))){
+    public function JoinEvent(PlayerJoinEvent $e)
+    {
+        if (is_null($this->getPlayer($e->getPlayer()))) {
             $this->AddPlayer($e->getPlayer());
         } else {
             $this->db->query("UPDATE `player_stats` SET `joins` = joins +1 WHERE `name` = '" . $this->db->escape_string($e->getPlayer()->getDisplayName()) . "'");
@@ -418,12 +448,14 @@ class PlayerStats extends PluginBase implements Listener{
     /**
      * @param PlayerQuitEvent $e
      */
-    public function onPlayerQuit(PlayerQuitEvent $e){
+    public function onPlayerQuit(PlayerQuitEvent $e)
+    {
         if(is_null($this->getPlayer($e->getPlayer()))){
             $this->AddPlayer($e->getPlayer());
         } else {
-            $this->db->query("UPDATE `player_stats` SET `quits` = quits +1 WHERE `name = '" . $this->db->escape_string($e->getPlayer()->getName()) . "'") or die($this->db->mysqli_error());
+            $this->db->query("UPDATE `player_stats` SET `quits` = quits +1 WHERE `name = '" . $this->db->escape_string($e->getPlayer()->getName()) . "'") || die($this->db->mysqli_error());
         }
-        //$this->db->query("UPDATE player_stats SET quits = quits +1 WHERE name = '".$this->db->escape_string($e->getPlayer()->getName())."'") or die($this->bd->mysqli_error());
+        //$this->db->query("UPDATE player_stats SET quits = quits +1 WHERE name = '" . $this->db->escape_string($e->getPlayer()->getName()) . "'") || die($this->bd->mysqli_error());
     }
+
 }
